@@ -8,14 +8,41 @@
     <select id="selectYearLogin" parameterType="string" resultType="YearCountDto">
         select concat('20', #{year}) as year, count(*) as totCnt
         from statistic.request_info ri
-        where left(ri.create_date, 2) = #{year};
+        where date_format(ri.create_date, '%Y') = concat('20', #{year});
     </select>
 
 
     <select id="selectYearMonthLogin" parameterType="string" resultType="YearMonthCountDto">
-        select concat('20', #{yearMonth}) as yearMonth, count(*) as totCnt
+        select date_format(create_date, '%Y-%m') as yearMonth, count(*) as totCnt
         from statistic.request_info ri
-        where left(ri.create_date, 4) = #{yearMonth};
+        where date_format(ri.create_date, '%Y-%m') = #{yearMonth};
+    </select>
+
+    <select id="selectMonthLogin" resultType="MonthCountDto">
+        select date_format(create_date, '%Y-%m') as loginMonth, count(distinct user_id) as userCnt
+        from statistic.request_info ri
+        group by date_format(create_date, '%Y-%m')
+        order by loginMonth;
+    </select>
+
+    <select id="selectDayLogin" resultType="DayCountDto">
+        select create_date as loginDate, count(distinct user_id) as userCnt
+        from statistic.request_info ri
+        group by create_date
+        order by create_date;
+    </select>
+
+    <select id="selectAvgDayLogin" resultType="AvgDayDto">
+        select round(count(*) / count(distinct create_date), 2) as avgCnt
+        from statistic.request_info;
+    </select>
+
+    <select id="selectDepMonthLogin" resultType="DepMonthDto">
+        select u.hr_organ as dep, date_format(r.create_date, '%Y-%m') as loginMonth, count(*) as totCnt
+        from request_info r
+        join statistic.user u on r.user_id = u.user_id
+        group by u.hr_organ, date_format(r.create_date, '%Y-%m')
+        order by u.hr_organ, loginMonth
     </select>
 
 </mapper>
